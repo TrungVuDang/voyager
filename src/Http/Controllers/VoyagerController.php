@@ -3,7 +3,6 @@
 namespace TCG\Voyager\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Constraint;
@@ -19,7 +18,7 @@ class VoyagerController extends Controller
 
     public function logout()
     {
-        Auth::logout();
+        app('VoyagerAuth')->logout();
 
         return redirect()->route('voyager.login');
     }
@@ -51,8 +50,11 @@ class VoyagerController extends Controller
                 ->resize($resizeWidth, $resizeHeight, function (Constraint $constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize();
-                })
-                ->encode($file->getClientOriginalExtension(), 75);
+                });
+            if ($ext !== 'gif') {
+                $image->orientate();
+            }
+            $image->encode($file->getClientOriginalExtension(), 75);
 
             // move uploaded file from temp to uploads directory
             if (Storage::disk(config('voyager.storage.disk'))->put($fullPath, (string) $image, 'public')) {
@@ -69,10 +71,10 @@ class VoyagerController extends Controller
         return "<script> parent.helpers.setImageValue('".Voyager::image($fullFilename)."'); </script>";
     }
 
-    public function assets($path)
+    public function assets(Request $request)
     {
-        $path = str_start(str_replace(['../', './'], '', $path), '/');
-        $path = __DIR__.'/../../../publishable/assets'.$path;
+        $path = str_start(str_replace(['../', './'], '', urldecode($request->path)), '/');
+        $path = base_path('vendor/tcg/voyager/publishable/assets'.$path);
         if (File::exists($path)) {
             $mime = '';
             if (ends_with($path, '.js')) {

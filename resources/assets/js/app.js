@@ -7,7 +7,6 @@ window.toastr = require('toastr');
 window.DataTable = require('datatables');
 require('datatables-bootstrap3-plugin/media/js/datatables-bootstrap3');
 window.SimpleMDE = require('simplemde');
-window.MediaManager = require('./media');
 require('dropzone');
 require('jquery-match-height');
 require('bootstrap-toggle');
@@ -25,6 +24,12 @@ require('./multilingual');
 require('./voyager_tinymce');
 require('./voyager_ace_editor');
 window.helpers = require('./helpers.js');
+
+Vue.component('admin-menu', require('./components/admin_menu.vue').default);
+
+var admin_menu = new Vue({
+    el: '#adminmenu',
+});
 
 $(document).ready(function () {
 
@@ -56,6 +61,7 @@ $(document).ready(function () {
                     var query = {
                         search: params.term,
                         type: $(this).data('get-items-field'),
+                        method: $(this).data('method'),
                         page: params.page || 1
                     }
                     return query;
@@ -123,7 +129,7 @@ $(document).ready(function () {
     });
 
     $('.panel-collapse').on('hide.bs.collapse', function(e) {
-        var target = $(event.target);
+        var target = $(e.target);
         if (!target.is('a')) {
             target = target.parent();
         }

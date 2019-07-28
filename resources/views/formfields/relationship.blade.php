@@ -11,7 +11,7 @@
                 @php
                     $relationshipData = (isset($data)) ? $data : $dataTypeContent;
                     $model = app($options->model);
-                    $query = $model::find($relationshipData->{$options->column});
+                    $query = $model::where($options->key,$relationshipData->{$options->column})->first();
                 @endphp
 
                 @if(isset($query))
@@ -23,9 +23,10 @@
             @else
 
                 <select
-                    class="form-control select2-ajax" name="{{ $options->column }}"
+                    class="form-control select2-ajax" name="{{ $relationshipField }}"
                     data-get-items-route="{{route('voyager.' . $dataType->slug.'.relation')}}"
                     data-get-items-field="{{$row->field}}"
+                    data-method="{{ isset($dataTypeContent) ? 'edit' : 'add' }}"
                 >
                     @php
                         $model = app($options->model);
@@ -156,7 +157,7 @@
                     data-get-items-route="{{route('voyager.' . $dataType->slug.'.relation')}}"
                     data-get-items-field="{{$row->field}}"
                     @if(isset($options->taggable) && $options->taggable == 'on')
-                        data-route="{{ route('voyager.'.str_slug($options->table).'.store') }}"
+                        data-route="{{ route('voyager.'.\Illuminate\Support\Str::slug($options->table).'.store') }}"
                         data-label="{{$options->label}}"
                         data-error-message="{{__('voyager::bread.error_tagging')}}"
                     @endif
